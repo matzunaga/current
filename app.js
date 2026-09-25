@@ -250,6 +250,7 @@
     state.lastFrame = performance.now();
     document.body.classList.add("running");
     document.getElementById("reading").hidden = false;
+    document.getElementById("details").hidden = false;
     pauseBtn.hidden = false;
     pauseBtn.textContent = "Pause";
     if (state.toneOn) startAudio();
