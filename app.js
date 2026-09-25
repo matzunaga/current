@@ -197,7 +197,7 @@
 
     const w = state.width, h = state.height;
     ctx.clearRect(0, 0, w, h);
-    const radians = (state.windDirection - 90) * Math.PI / 180;
+    const radians = (state.windDirection + 90) * Math.PI / 180;
     const dx = Math.cos(radians);
     const dy = Math.sin(radians);
     const px = -dy;
