@@ -6,9 +6,6 @@
   --muted: rgba(231, 226, 215, .52);
   --faint: rgba(231, 226, 215, .14);
   --accent: #d4a86b;
-  --red: rgb(225, 55, 55);
-  --royal: rgb(185, 35, 65);
-  --burgundy: rgb(155, 35, 55);
 }
 
 * { box-sizing: border-box; }
@@ -62,13 +59,6 @@ body.running.controls-visible .controls { opacity: 1; transform: translateY(0); 
 .ctrl:hover { color: var(--ink); }
 .ctrl-start { border-bottom: 1px solid var(--muted); color: var(--ink); }
 .ctrl-start:hover { color: var(--accent); border-color: var(--accent); }
-.ctrl-color { padding: 6px 10px; border: 1px solid var(--faint); border-radius: 2px; }
-.ctrl-color.active { border-color: var(--ink); color: var(--ink); }
-.ctrl-color[data-color="red"].active { border-color: var(--red); color: var(--red); }
-.ctrl-color[data-color="royal"].active { border-color: var(--royal); color: var(--royal); }
-.ctrl-color[data-color="burgundy"].active { border-color: var(--burgundy); color: var(--burgundy); }
-.ctrl-label { font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
-.ctrl-group { display: flex; align-items: center; gap: 6px; }
 .ctrl-divider { width: 1px; height: 16px; background: var(--faint); }
 .ctrl-info {
   display: grid; place-items: center; width: 17px; height: 17px;

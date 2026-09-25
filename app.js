@@ -17,17 +17,12 @@
   const aboutPanel = document.getElementById("aboutPanel");
   const toneToggle = document.getElementById("toneToggle");
 
-  const COLORS = {
-    red: { r: 225, g: 55, b: 55 },
-    royal: { r: 185, g: 35, b: 65 },
-    burgundy: { r: 155, g: 35, b: 55 }
-  };
 
   const state = {
     running: false, paused: false, lastFrame: 0, width: 0, height: 0, dpr: 1,
     windSpeed: 9, windDirection: 285, gusts: 13, temperature: 18, isDay: false,
     targetSpeed: 0.42, speed: 0.42, particles: [], dataTime: null, source: "live",
-    color: "red", toneOn: false
+    toneOn: false
   };
 
   /* ── Audio: low-pass pink noise ocean wash ── */
@@ -216,8 +211,6 @@
     ctx.fillStyle = wash;
     ctx.fillRect(0, 0, w, h);
 
-    const color = COLORS[state.color];
-    const boost = 2.4; // colored lines need more presence on dark ground
     for (const p of state.particles) {
       const sway = Math.sin(now * .00048 + p.phase + (p.x + p.y) * .008) * (4 + motion * 10);
       const lineLength = p.length * (.5 + motion * .68);
@@ -226,7 +219,7 @@
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
       ctx.quadraticCurveTo(p.x - dx * lineLength * .46 + px * sway * .25, p.y - dy * lineLength * .46 + py * sway * .25, x2, y2);
-      ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${Math.min(1, p.alpha * boost)})`;
+      ctx.strokeStyle = state.isDay ? `rgba(231, 222, 203, ${p.alpha})` : `rgba(214, 224, 230, ${p.alpha})`;
       ctx.lineWidth = .45 + motion * .35;
       ctx.stroke();
       p.x += dx * motion * p.drift * delta * .022 + px * Math.sin(now * .0005 + p.phase) * .012;
@@ -286,13 +279,6 @@
     }
   }
 
-  function selectColor(color) {
-    state.color = color;
-    document.querySelectorAll(".ctrl-color").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.color === color);
-    });
-  }
-
   function toggleAbout(force) {
     const open = typeof force === "boolean" ? force : aboutPanel.hidden;
     aboutPanel.hidden = !open;
@@ -307,10 +293,6 @@
   toneToggle.addEventListener("click", toggleTone);
   aboutButton.addEventListener("click", () => toggleAbout());
   closeAbout.addEventListener("click", () => toggleAbout(false));
-
-  document.querySelectorAll(".ctrl-color").forEach(btn => {
-    btn.addEventListener("click", () => selectColor(btn.dataset.color));
-  });
 
   window.addEventListener("resize", resize, { passive: true });
   window.addEventListener("keydown", (event) => {
