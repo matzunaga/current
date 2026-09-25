@@ -10,7 +10,7 @@
     content="Current — a living field shaped by the wind in San Diego."
   />
   <title>Current — San Diego</title>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <main class="experience" aria-labelledby="title">
@@ -21,25 +21,26 @@
       <h1 id="title">Current</h1>
     </header>
 
-    <!-- Top-right: selected location + weather details -->
     <div class="meta" id="meta">
       <p class="place" id="place">San Diego, California</p>
       <p class="details" id="details" hidden>—</p>
     </div>
 
-    <!-- Bottom: large copy (intro) -->
     <section class="intro" id="intro" aria-live="polite">
-      <p class="instruction">The air is moving.<br />Stay with it for a while.</p>
+      <p class="instruction">
+        The air is moving.<br />
+        Stay with it for a while.
+      </p>
       <p class="hint">Press space or tap Begin.</p>
     </section>
 
-    <!-- Bottom: large copy (running) -->
     <section class="reading" id="reading" aria-live="polite" hidden>
       <p class="condition" id="condition">Listening for the wind.</p>
     </section>
 
     <div class="controls" id="controls">
       <button class="ctrl ctrl-start" id="start" type="button">Begin</button>
+
       <span class="ctrl-divider" aria-hidden="true"></span>
 
       <button
@@ -71,14 +72,16 @@
         type="button"
         aria-expanded="false"
         aria-controls="aboutPanel"
+        aria-label="About Current"
       >
         i
       </button>
     </div>
 
-    <p class="status" id="status" role="status">Loading present conditions.</p>
+    <p class="status" id="status" role="status">
+      Loading present conditions.
+    </p>
 
-    <!-- Curated city picker -->
     <aside
       class="location-panel"
       id="locationPanel"
@@ -203,6 +206,7 @@
   </main>
 
   <noscript>This piece needs JavaScript to move with the wind.</noscript>
-  <script src="app.js?v=6"></script>
+
+  <script src="app.js?v=7"></script>
 </body>
 </html>
