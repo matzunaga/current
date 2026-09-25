@@ -6,9 +6,9 @@
   --muted: rgba(231, 226, 215, .52);
   --faint: rgba(231, 226, 215, .14);
   --accent: #d4a86b;
-  --red: rgb(210, 45, 45);
-  --royal: rgb(165, 25, 55);
-  --burgundy: rgb(130, 25, 45);
+  --red: rgb(225, 55, 55);
+  --royal: rgb(185, 35, 65);
+  --burgundy: rgb(155, 35, 55);
 }
 
 * { box-sizing: border-box; }
