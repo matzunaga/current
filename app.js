@@ -102,11 +102,8 @@
     speed: 0.42,
     particles: [],
     dataTime: null,
-    source: "live",
     toneOn: false
   };
-
-  /* ── Audio: low-pass pink noise ocean wash ── */
 
   const audio = {
     ctx: null,
@@ -199,8 +196,6 @@
     audio.gain.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.8);
   }
 
-  /* ── Noise and particles ── */
-
   function seededNoise(n) {
     const x = Math.sin(n * 12.9898) * 43758.5453;
     return x - Math.floor(x);
@@ -236,8 +231,6 @@
       length: 18 + seededNoise(index * 3.1) * 54
     }));
   }
-
-  /* ── Weather text ── */
 
   function directionWords(degrees) {
     const labels = [
@@ -294,8 +287,6 @@
       ` · ${temperature}°`;
   }
 
-  /* ── Location selection ── */
-
   function updateLocationUI() {
     const { city } = state;
 
@@ -338,7 +329,6 @@
     state.cityId = cityId;
     state.city = CITIES[cityId];
     state.dataTime = null;
-    state.source = "live";
 
     localStorage.setItem(STORAGE_KEY, cityId);
 
@@ -348,8 +338,6 @@
     statusEl.textContent = `Listening for the wind in ${state.city.shortName}.`;
     loadWeather();
   }
-
-  /* ── Live weather ── */
 
   async function loadWeather() {
     const cityAtRequest = state.city;
@@ -380,7 +368,6 @@
         throw new Error("Weather response has no current conditions");
       }
 
-      /* Ignore a completed request from a city that is no longer selected. */
       if (cityAtRequest !== state.city) return;
 
       state.windSpeed = Number(current.wind_speed_10m) || 0;
@@ -393,7 +380,6 @@
         Math.min(1.65, state.windSpeed / 17)
       );
       state.dataTime = new Date();
-      state.source = "live";
 
       renderReading();
 
@@ -404,15 +390,11 @@
 
       if (cityAtRequest !== state.city) return;
 
-      state.source = "ambient";
       renderReading();
-
       statusEl.textContent =
         "Present conditions unavailable · moving in ambient mode";
     }
   }
-
-  /* ── Render loop ── */
 
   function draw(now) {
     requestAnimationFrame(draw);
@@ -454,8 +436,8 @@
     wash.addColorStop(
       0,
       state.isDay
-        ? "rgba(205, 182, 135, .034)"
-        : "rgba(103, 128, 153, .034)"
+        ? "rgba(205, 182, 135, 0.034)"
+        : "rgba(103, 128, 153, 0.034)"
     );
 
     wash.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -509,8 +491,6 @@
       if (particle.y > height + pad) particle.y = -pad;
     }
   }
-
-  /* ── Controls ── */
 
   let hideTimer = null;
 
@@ -574,7 +554,9 @@
     toneToggle.setAttribute("aria-pressed", String(state.toneOn));
 
     if (state.toneOn) {
-      if (state.running && !state.paused) startAudio();
+      if (state.running && !state.paused) {
+        startAudio();
+      }
     } else {
       stopAudio();
     }
@@ -592,8 +574,6 @@
       aboutButton.focus();
     }
   }
-
-  /* ── Events ── */
 
   startButton.addEventListener("click", begin);
   pauseBtn.addEventListener("click", togglePause);
@@ -647,8 +627,6 @@
     },
     { passive: true }
   );
-
-  /* ── Init ── */
 
   updateLocationUI();
   resize();
