@@ -6,7 +6,7 @@
   --muted: rgba(231, 226, 215, 0.52);
   --faint: rgba(231, 226, 215, 0.14);
   --accent: #d4a86b;
-  --panel: rgba(20, 20, 18, 0.9);
+  --panel: rgba(20, 20, 18, 0.92);
 }
 
 * {
@@ -60,7 +60,7 @@ body.running #field {
   opacity: 1;
 }
 
-/* Top-left masthead */
+/* Masthead */
 
 .masthead {
   position: fixed;
@@ -76,7 +76,7 @@ body.running #field {
 .mark {
   margin: 0;
   color: var(--accent);
-  font-family: "Newsreader", serif;
+  font-family: "Newsreader", Georgia, serif;
   font-size: 22px;
   font-weight: 300;
   line-height: 1;
@@ -91,7 +91,7 @@ h1 {
   letter-spacing: -0.03em;
 }
 
-/* Top-right selected city and weather */
+/* Current city and conditions */
 
 .meta {
   position: fixed;
@@ -126,7 +126,7 @@ h1 {
   letter-spacing: 0.09em;
 }
 
-/* Intro before the experience begins */
+/* Opening text */
 
 .intro {
   position: fixed;
@@ -159,7 +159,7 @@ body.running .intro {
   margin: 18px 0 0;
 }
 
-/* Current wind reading after Begin */
+/* Wind reading */
 
 .reading {
   position: fixed;
@@ -188,7 +188,7 @@ body.running .reading {
   text-wrap: balance;
 }
 
-/* Bottom control bar */
+/* Controls */
 
 .controls {
   position: fixed;
@@ -259,9 +259,11 @@ body.running.controls-visible .controls {
   place-items: center;
   border: 1px solid var(--faint);
   border-radius: 50%;
-  font-family: "Newsreader", serif;
+  font-family: "Newsreader", Georgia, serif;
   font-size: 12px;
 }
+
+/* Status line */
 
 .status {
   position: fixed;
@@ -281,11 +283,36 @@ body.running .status {
   opacity: 0.5;
 }
 
-/* Information panel */
+/* Shared overlay close buttons */
+
+.close-about,
+.close-location {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.close-about:hover,
+.close-location:hover {
+  color: var(--ink);
+}
+
+/* About overlay */
 
 .about-panel {
   position: fixed;
-  z-index: 3;
+  z-index: 4;
   top: 70px;
   right: 24px;
   width: min(330px, calc(100vw - 48px));
@@ -324,29 +351,15 @@ a {
   text-underline-offset: 3px;
 }
 
-.close-about,
-.close-location {
-  position: absolute;
-  top: 9px;
-  right: 12px;
-  padding: 4px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-}
-
-/* City picker */
+/* City selection overlay */
 
 .location-panel {
   position: fixed;
   z-index: 3;
   inset: 0;
   overflow-y: auto;
-  padding: clamp(78px, 11vh, 120px) clamp(28px, 7vw, 104px) 48px;
-  background: rgba(16, 16, 15, 0.92);
+  padding: clamp(92px, 13vh, 140px) clamp(28px, 8vw, 128px) 48px;
+  background: rgba(16, 16, 15, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -359,7 +372,7 @@ a {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(280px, 390px);
   align-items: start;
-  gap: clamp(40px, 9vw, 150px);
+  gap: clamp(48px, 10vw, 180px);
   width: min(1120px, 100%);
   margin: 0 auto;
 }
@@ -371,31 +384,31 @@ a {
 .panel-label {
   margin: 0;
   color: var(--ink);
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: clamp(25px, 3vw, 42px);
   font-weight: 400;
-  letter-spacing: -0.035em;
   line-height: 1.08;
+  letter-spacing: -0.04em;
   text-transform: none;
-  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .city-list {
   display: flex;
   width: 100%;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .city-option {
   display: flex;
   width: 100%;
-  min-height: 48px;
+  min-height: 50px;
   align-items: center;
   justify-content: flex-start;
-  padding: 11px 20px;
-  border: 1px solid rgba(231, 226, 215, 0.24);
+  padding: 11px 21px;
+  border: 1px solid rgba(231, 226, 215, 0.25);
   border-radius: 999px;
-  background: rgba(231, 226, 215, 0.08);
+  background: rgba(231, 226, 215, 0.1);
   color: var(--ink);
   cursor: pointer;
   font-family: "Newsreader", Georgia, serif;
@@ -409,9 +422,9 @@ a {
 
 .city-option:hover,
 .city-option:focus-visible {
-  border-color: rgba(231, 226, 215, 0.72);
-  background: rgba(231, 226, 215, 0.16);
-  color: #fff;
+  border-color: rgba(231, 226, 215, 0.75);
+  background: rgba(231, 226, 215, 0.18);
+  color: #ffffff;
   transform: translateX(-4px);
 }
 
@@ -419,10 +432,6 @@ a {
   border-color: var(--accent);
   background: rgba(212, 168, 107, 0.16);
   color: var(--accent);
-}
-
-.city-option:last-child {
-  margin-bottom: 0;
 }
 
 noscript {
@@ -433,7 +442,7 @@ noscript {
   font-size: 10px;
 }
 
-/* Mobile */
+/* Mobile layout */
 
 @media (max-width: 700px) {
   .masthead {
@@ -480,14 +489,14 @@ noscript {
   }
 
   .location-panel {
-    padding: 72px 20px 36px;
+    padding: 76px 20px 36px;
   }
 
   .location-picker-layout {
     display: flex;
+    width: min(480px, 100%);
     flex-direction: column;
     gap: 28px;
-    width: min(470px, 100%);
   }
 
   .panel-label {
@@ -495,18 +504,24 @@ noscript {
   }
 
   .city-list {
-    gap: 8px;
+    gap: 9px;
   }
 
   .city-option {
-    min-height: 52px;
-    padding: 12px 18px;
+    min-height: 53px;
+    padding: 12px 19px;
     font-size: 19px;
   }
 
   .city-option:hover,
   .city-option:focus-visible {
     transform: none;
+  }
+
+  .close-about,
+  .close-location {
+    top: 12px;
+    right: 12px;
   }
 }
 
