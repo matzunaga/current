@@ -56,6 +56,7 @@
   const DEFAULT_CITY_ID = "san-diego";
   const STORAGE_KEY = "current-city";
   const REFRESH_MS = 15 * 60 * 1000;
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const canvas = document.getElementById("field");
   const ctx = canvas.getContext("2d", { alpha: true });
@@ -438,12 +439,12 @@
     const px = -dy;
     const py = dx;
 
-    const gustPulse =
-      0.83 +
-      Math.sin(now * 0.00037) * 0.11 +
-      Math.sin(now * 0.0011) * 0.06;
+    // with reduced motion the field keeps its direction but drifts slowly, without gusting
+    const gustPulse = reduceMotion
+      ? 0.83
+      : 0.83 + Math.sin(now * 0.00037) * 0.11 + Math.sin(now * 0.0011) * 0.06;
 
-    const motion = state.speed * gustPulse;
+    const motion = state.speed * gustPulse * (reduceMotion ? 0.25 : 1);
 
     const wash = ctx.createRadialGradient(
       width * 0.5,
