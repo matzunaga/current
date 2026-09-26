@@ -17,9 +17,33 @@
     <canvas id="field" aria-hidden="true"></canvas>
 
     <header class="masthead">
-      <p class="mark" aria-hidden="true">流</p>
+      <button
+        class="mark"
+        id="mark"
+        type="button"
+        aria-label="What 流 means"
+        aria-expanded="false"
+        aria-controls="markCard"
+      >
+        流
+      </button>
       <h1 id="title">Current</h1>
     </header>
+
+    <aside class="mark-card" id="markCard" aria-label="What 流 means" hidden>
+      <p class="mark-title">流 <span>nagare</span></p>
+
+      <p>
+        A Japanese word for flow: water in a stream, air moving across a city,
+        time passing without asking.
+      </p>
+
+      <p>
+        The character sets the water radical 氵 beside a form for something
+        carried along. Here it is the wind, which never passes the same way
+        twice.
+      </p>
+    </aside>
 
     <div class="meta" id="meta">
       <p class="place" id="place">San Diego, California</p>

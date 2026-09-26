@@ -75,6 +75,9 @@
 
   const toneToggle = document.getElementById("toneToggle");
 
+  const mark = document.getElementById("mark");
+  const markCard = document.getElementById("markCard");
+
   const placeEl = document.getElementById("place");
   const locationButton = document.getElementById("locationButton");
   const locationPanel = document.getElementById("locationPanel");
@@ -593,7 +596,21 @@
     }
   }
 
+  function toggleMark(force) {
+    const open = typeof force === "boolean" ? force : markCard.hidden;
+
+    markCard.hidden = !open;
+    mark.setAttribute("aria-expanded", String(open));
+  }
+
   startButton.addEventListener("click", begin);
+
+  mark.addEventListener("click", () => toggleMark());
+
+  // the meaning card closes with Escape or a click anywhere outside it
+  window.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest("#markCard, #mark")) toggleMark(false);
+  });
   pauseBtn.addEventListener("click", togglePause);
   toneToggle.addEventListener("click", toggleTone);
 
@@ -622,6 +639,7 @@
     if (event.key === "Escape") {
       if (!locationPanel.hidden) toggleLocation(false);
       if (!aboutPanel.hidden) toggleAbout(false);
+      toggleMark(false);
     }
   });
 

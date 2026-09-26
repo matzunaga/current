@@ -75,11 +75,22 @@ body.running #field {
 
 .mark {
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--accent);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.25s ease;
   font-family: "Newsreader", Georgia, serif;
   font-size: 22px;
   font-weight: 300;
   line-height: 1;
+}
+
+.mark:hover,
+.mark[aria-expanded="true"] {
+  opacity: 1;
 }
 
 h1 {
@@ -351,6 +362,50 @@ a {
   text-underline-offset: 3px;
 }
 
+/* Meaning of the mark */
+
+.mark-card {
+  position: fixed;
+  z-index: 4;
+  top: 70px;
+  left: 24px;
+  width: min(300px, calc(100vw - 48px));
+  padding: 18px 20px;
+  border: 1px solid var(--faint);
+  background: var(--panel);
+  color: var(--muted);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 16px;
+  line-height: 1.26;
+}
+
+.mark-card[hidden] {
+  display: none;
+}
+
+.mark-card p {
+  margin: 0 0 12px;
+}
+
+.mark-card p:last-child {
+  margin-bottom: 0;
+}
+
+.mark-title {
+  color: var(--accent);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.mark-title span {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
 /* City selection overlay */
 
 .location-panel {
@@ -480,6 +535,12 @@ noscript {
   .instruction,
   .condition {
     font-size: 24px;
+  }
+
+  .mark-card {
+    top: 60px;
+    left: 16px;
+    width: calc(100vw - 32px);
   }
 
   .about-panel {
