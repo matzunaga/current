@@ -607,9 +607,16 @@
 
   mark.addEventListener("click", () => toggleMark());
 
-  // the meaning card closes with Escape or a click anywhere outside it
+  // the meaning card and the city list close with Escape or a click anywhere outside them
   window.addEventListener("pointerdown", (event) => {
     if (!event.target.closest("#markCard, #mark")) toggleMark(false);
+
+    if (
+      !locationPanel.hidden &&
+      !event.target.closest("#locationPanel, #locationButton")
+    ) {
+      toggleLocation(false);
+    }
   });
   pauseBtn.addEventListener("click", togglePause);
   toneToggle.addEventListener("click", toggleTone);

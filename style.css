@@ -299,8 +299,7 @@ body.running .status {
 
 /* Shared overlay close buttons */
 
-.close-about,
-.close-location {
+.close-about {
   position: absolute;
   z-index: 1;
   top: 16px;
@@ -317,8 +316,7 @@ body.running .status {
   line-height: 1;
 }
 
-.close-about:hover,
-.close-location:hover {
+.close-about:hover {
   color: var(--ink);
 }
 
@@ -409,86 +407,84 @@ a {
   letter-spacing: 0;
 }
 
-/* City selection overlay */
+/* City selection: a small veil near the Place control, over the field */
 
 .location-panel {
   position: fixed;
   z-index: 3;
-  inset: 0;
-  overflow-y: auto;
-  padding: clamp(92px, 13vh, 140px) clamp(28px, 8vw, 128px) 48px;
-  background: rgba(16, 16, 15, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  left: calc(env(safe-area-inset-left, 0px) + 24px);
+  max-width: calc(100vw - 32px);
+  padding: 14px 14px 12px;
+  border: 1px solid var(--faint);
+  border-radius: 14px;
+  background: rgba(16, 16, 15, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .location-panel[hidden] {
   display: none;
 }
 
-.location-picker-layout {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(280px, 390px);
-  align-items: start;
-  gap: clamp(48px, 10vw, 180px);
-  width: min(1120px, 100%);
-  margin: 0 auto;
-}
-
-.location-picker-heading {
-  min-width: 0;
-}
-
 .panel-label {
-  margin: 0;
+  margin: 0 32px 10px 4px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.close-location {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.close-location:hover {
   color: var(--ink);
-  font-family: var(--mono);
-  font-size: clamp(25px, 3vw, 42px);
-  font-weight: 400;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  text-transform: none;
 }
 
 .city-list {
   display: flex;
-  width: 100%;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .city-option {
-  display: flex;
-  width: 100%;
-  min-height: 50px;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 11px 21px;
-  border: 1px solid rgba(231, 226, 215, 0.25);
+  padding: 6px 12px;
+  border: 1px solid rgba(231, 226, 215, 0.12);
   border-radius: 999px;
-  background: rgba(231, 226, 215, 0.1);
-  color: var(--ink);
+  background: transparent;
+  color: rgba(231, 226, 215, 0.78);
   cursor: pointer;
   font-family: var(--serif);
-  font-size: clamp(17px, 1.8vw, 21px);
+  font-size: 14px;
   font-weight: 300;
-  line-height: 1.15;
+  line-height: 1.2;
   text-align: left;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-    transform 0.2s ease;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .city-option:hover,
 .city-option:focus-visible {
-  border-color: rgba(231, 226, 215, 0.75);
-  background: rgba(231, 226, 215, 0.18);
-  color: #ffffff;
-  transform: translateX(-4px);
+  border-color: rgba(231, 226, 215, 0.4);
+  background: rgba(231, 226, 215, 0.06);
+  color: var(--ink);
 }
 
 .city-option[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: rgba(212, 168, 107, 0.16);
+  border-color: rgba(212, 168, 107, 0.5);
   color: var(--accent);
 }
 
@@ -553,37 +549,10 @@ noscript {
   }
 
   .location-panel {
-    padding: calc(env(safe-area-inset-top, 0px) + 76px) 20px calc(env(safe-area-inset-bottom, 0px) + 36px);
+    left: calc(env(safe-area-inset-left, 0px) + 16px);
   }
 
-  .location-picker-layout {
-    display: flex;
-    width: min(480px, 100%);
-    flex-direction: column;
-    gap: 28px;
-  }
-
-  .panel-label {
-    font-size: 29px;
-  }
-
-  .city-list {
-    gap: 9px;
-  }
-
-  .city-option {
-    min-height: 53px;
-    padding: 12px 19px;
-    font-size: 19px;
-  }
-
-  .city-option:hover,
-  .city-option:focus-visible {
-    transform: none;
-  }
-
-  .close-about,
-  .close-location {
+  .close-about {
     top: 12px;
     right: 12px;
   }
@@ -601,10 +570,6 @@ noscript {
 
   .ctrl {
     letter-spacing: 0.08em;
-  }
-
-  .city-option {
-    font-size: 18px;
   }
 }
 
