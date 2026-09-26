@@ -81,7 +81,11 @@
   const cityList = document.getElementById("cityList");
   const pageDescription = document.getElementById("pageDescription");
 
-  const savedCityId = localStorage.getItem(STORAGE_KEY);
+  // storage can be blocked in private windows; the saved city is only a convenience
+  let savedCityId = null;
+  try {
+    savedCityId = localStorage.getItem(STORAGE_KEY);
+  } catch (error) {}
   const initialCityId = CITIES[savedCityId] ? savedCityId : DEFAULT_CITY_ID;
 
   const state = {
@@ -338,7 +342,9 @@
     conditionEl.textContent = "Listening for the wind.";
     detailsEl.textContent = "";
 
-    localStorage.setItem(STORAGE_KEY, cityId);
+    try {
+      localStorage.setItem(STORAGE_KEY, cityId);
+    } catch (error) {}
 
     updateLocationUI();
     toggleLocation(false);
