@@ -102,6 +102,7 @@
     speed: 0.42,
     particles: [],
     dataTime: null,
+    lastFetch: 0,
     toneOn: false
   };
 
@@ -348,6 +349,7 @@
 
   async function loadWeather() {
     const cityAtRequest = state.city;
+    state.lastFetch = Date.now();
 
     const params = new URLSearchParams({
       latitude: cityAtRequest.lat,
@@ -534,8 +536,6 @@
     pauseBtn.textContent = "Pause";
 
     if (state.toneOn) startAudio();
-
-    loadWeather();
   }
 
   function togglePause() {
@@ -642,6 +642,14 @@
   updateLocationUI();
   resize();
   requestAnimationFrame(draw);
+  // refresh only while the page is visible, and catch up when it returns
+  function refreshIfStale() {
+    if (!document.hidden && Date.now() - state.lastFetch >= REFRESH_MS) {
+      loadWeather();
+    }
+  }
+
   loadWeather();
-  setInterval(loadWeather, REFRESH_MS);
+  setInterval(refreshIfStale, 60 * 1000);
+  document.addEventListener("visibilitychange", refreshIfStale);
 })();
