@@ -66,8 +66,8 @@ body.running #field {
 .masthead {
   position: fixed;
   z-index: 1;
-  top: 25px;
-  left: 28px;
+  top: calc(env(safe-area-inset-top, 0px) + 25px);
+  left: calc(env(safe-area-inset-left, 0px) + 28px);
   display: flex;
   align-items: baseline;
   gap: 11px;
@@ -108,8 +108,8 @@ h1 {
 .meta {
   position: fixed;
   z-index: 1;
-  top: 25px;
-  right: 28px;
+  top: calc(env(safe-area-inset-top, 0px) + 25px);
+  right: calc(env(safe-area-inset-right, 0px) + 28px);
   text-align: right;
 }
 
@@ -134,7 +134,7 @@ h1 {
 
 .hint {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.09em;
 }
 
@@ -143,7 +143,7 @@ h1 {
 .intro {
   position: fixed;
   z-index: 1;
-  bottom: 95px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 95px);
   left: 50%;
   width: min(420px, calc(100vw - 48px));
   transform: translateX(-50%);
@@ -176,7 +176,7 @@ body.running .intro {
 .reading {
   position: fixed;
   z-index: 1;
-  bottom: 80px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
   left: 50%;
   width: min(520px, calc(100vw - 48px));
   transform: translateX(-50%);
@@ -213,7 +213,7 @@ body.running .reading {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 18px 24px 22px;
+  padding: 18px 24px calc(env(safe-area-inset-bottom, 0px) + 22px);
   transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s ease;
 }
 
@@ -237,7 +237,7 @@ body.running.controls-visible .controls {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   transition: color 0.25s ease, border-color 0.25s ease;
@@ -265,14 +265,16 @@ body.running.controls-visible .controls {
 
 .ctrl-info {
   display: grid;
-  width: 17px;
-  height: 17px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   place-items: center;
   border: 1px solid var(--faint);
   border-radius: 50%;
   font-family: var(--serif);
-  font-size: 12px;
+  font-size: 14px;
+  font-style: italic;
+  text-transform: none;
 }
 
 /* Status line */
@@ -280,12 +282,12 @@ body.running.controls-visible .controls {
 .status {
   position: fixed;
   z-index: 1;
-  bottom: 6px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
   left: 50%;
   opacity: 0;
   transform: translateX(-50%);
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.06em;
   white-space: nowrap;
   transition: opacity 0.6s ease;
@@ -325,8 +327,8 @@ body.running .status {
 .about-panel {
   position: fixed;
   z-index: 4;
-  top: 70px;
-  right: 24px;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  right: calc(env(safe-area-inset-right, 0px) + 24px);
   width: min(330px, calc(100vw - 48px));
   padding: 20px 43px 20px 20px;
   border: 1px solid var(--faint);
@@ -353,7 +355,7 @@ body.running .status {
 
 .attribution {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -368,8 +370,8 @@ a {
 .mark-card {
   position: fixed;
   z-index: 4;
-  top: 70px;
-  left: 24px;
+  top: calc(env(safe-area-inset-top, 0px) + 70px);
+  left: calc(env(safe-area-inset-left, 0px) + 24px);
   width: min(300px, calc(100vw - 48px));
   padding: 18px 20px;
   border: 1px solid var(--faint);
@@ -492,7 +494,7 @@ a {
 
 noscript {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
   left: 28px;
   color: var(--muted);
   font-size: 10px;
@@ -502,23 +504,23 @@ noscript {
 
 @media (max-width: 700px) {
   .masthead {
-    top: 21px;
-    left: 20px;
+    top: calc(env(safe-area-inset-top, 0px) + 21px);
+    left: calc(env(safe-area-inset-left, 0px) + 20px);
   }
 
   .meta {
-    top: 21px;
-    right: 20px;
+    top: calc(env(safe-area-inset-top, 0px) + 21px);
+    right: calc(env(safe-area-inset-right, 0px) + 20px);
   }
 
   .meta .place,
   .meta .details {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .controls {
     gap: 10px;
-    padding: 14px 16px 18px;
+    padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
   }
 
   .ctrl-divider {
@@ -526,11 +528,11 @@ noscript {
   }
 
   .intro {
-    bottom: 85px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 85px);
   }
 
   .reading {
-    bottom: 70px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
   }
 
   .instruction,
@@ -539,19 +541,19 @@ noscript {
   }
 
   .mark-card {
-    top: 60px;
+    top: calc(env(safe-area-inset-top, 0px) + 60px);
     left: 16px;
     width: calc(100vw - 32px);
   }
 
   .about-panel {
-    top: 60px;
+    top: calc(env(safe-area-inset-top, 0px) + 60px);
     right: 16px;
     width: min(330px, calc(100vw - 32px));
   }
 
   .location-panel {
-    padding: 76px 20px 36px;
+    padding: calc(env(safe-area-inset-top, 0px) + 76px) 20px calc(env(safe-area-inset-bottom, 0px) + 36px);
   }
 
   .location-picker-layout {
@@ -598,8 +600,7 @@ noscript {
   }
 
   .ctrl {
-    font-size: 8px;
-    letter-spacing: 0.09em;
+    letter-spacing: 0.08em;
   }
 
   .city-option {
