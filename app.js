@@ -287,6 +287,11 @@
       ` · ${temperature}°`;
   }
 
+  function clearReading() {
+    conditionEl.textContent = "The air is moving.";
+    detailsEl.textContent = "";
+  }
+
   function updateLocationUI() {
     const { city } = state;
 
@@ -329,6 +334,8 @@
     state.cityId = cityId;
     state.city = CITIES[cityId];
     state.dataTime = null;
+    conditionEl.textContent = "Listening for the wind.";
+    detailsEl.textContent = "";
 
     localStorage.setItem(STORAGE_KEY, cityId);
 
@@ -382,18 +389,24 @@
       state.dataTime = new Date();
 
       renderReading();
-
-      statusEl.textContent =
-        `Updated ${formatUpdated(state.dataTime)} · live conditions`;
     } catch (error) {
       console.warn(error);
 
       if (cityAtRequest !== state.city) return;
 
-      renderReading();
-      statusEl.textContent =
-        "Present conditions unavailable · moving in ambient mode";
+      // keep the last real reading if there is one; otherwise move without claiming numbers
+      if (!state.dataTime) clearReading();
     }
+
+    statusEl.textContent = statusText();
+  }
+
+  function statusText() {
+    if (!state.dataTime) {
+      return "Present conditions unavailable · moving in ambient mode";
+    }
+
+    return `Updated ${formatUpdated(state.dataTime)} · live conditions`;
   }
 
   function draw(now) {
@@ -542,9 +555,7 @@
 
     statusEl.textContent = state.paused
       ? "The field is held."
-      : state.dataTime
-        ? `Updated ${formatUpdated(state.dataTime)} · live conditions`
-        : "Listening for the wind.";
+      : statusText();
   }
 
   function toggleTone() {
@@ -630,7 +641,6 @@
 
   updateLocationUI();
   resize();
-  renderReading();
   requestAnimationFrame(draw);
   loadWeather();
   setInterval(loadWeather, REFRESH_MS);
