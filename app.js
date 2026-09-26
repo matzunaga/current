@@ -63,8 +63,8 @@
 
   const intro = document.getElementById("intro");
   const reading = document.getElementById("reading");
+  // one button: Begin, then Pause and Resume
   const startButton = document.getElementById("start");
-  const pauseBtn = document.getElementById("pauseBtn");
   const conditionEl = document.getElementById("condition");
   const detailsEl = document.getElementById("details");
   const statusEl = document.getElementById("status");
@@ -542,8 +542,7 @@
     reading.hidden = false;
     detailsEl.hidden = false;
 
-    pauseBtn.hidden = false;
-    pauseBtn.textContent = "Pause";
+    startButton.textContent = "Pause";
 
     if (state.toneOn) startAudio();
   }
@@ -555,7 +554,7 @@
     }
 
     state.paused = !state.paused;
-    pauseBtn.textContent = state.paused ? "Resume" : "Pause";
+    startButton.textContent = state.paused ? "Resume" : "Pause";
 
     if (state.paused) {
       stopAudio();
@@ -603,7 +602,7 @@
     mark.setAttribute("aria-expanded", String(open));
   }
 
-  startButton.addEventListener("click", begin);
+  startButton.addEventListener("click", togglePause);
 
   mark.addEventListener("click", () => toggleMark());
 
@@ -618,7 +617,6 @@
       toggleLocation(false);
     }
   });
-  pauseBtn.addEventListener("click", togglePause);
   toneToggle.addEventListener("click", toggleTone);
 
   locationButton.addEventListener("click", () => toggleLocation());
