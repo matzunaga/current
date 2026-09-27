@@ -30,6 +30,17 @@
   const BREATH_AMPLITUDE = 0.12; // thread bends grow and shrink by this share
   const BREATH_SPACING = 0.045; // the river widens and narrows by this share
 
+  // The sound
+  const SOUND_FILE = "stream.mp3?v=1";
+  const SOUND_LEVEL = 0.8; // overall loudness once faded in
+  const SOUND_FADE_SECONDS = 8; // from silence after Begin
+  const LOOP_CROSSFADE = 4; // seconds the end of the recording overlaps the start of the next pass
+  const LOOP_TRIM = 0.25; // seconds skipped at each end of the file, where the encoder pads
+  const SWELL_DB = 2.5; // how much louder the swell is than the settle
+  const FILTER_SETTLED = 3200; // low-pass cutoff in hertz when the breath settles
+  const FILTER_SWELLED = 5200; // and when it swells
+  const FILTER_Q = 0.5; // a soft knee, nothing resonant
+
   // Beginning
   const IDLE_LEVEL = 0.1; // how present the field is before Begin
   const IDLE_PACE = 0.35; // how fast it moves before Begin
@@ -70,7 +81,6 @@
     level: IDLE_LEVEL, // overall presence of the field, 0 to 1
     pace: IDLE_PACE, // overall speed of time in the field
     flowTime: 0, // accumulated, so a change of pace never jumps
-    breathPhase: 0,
     breath: 0, // -1 settled to +1 swelled
     accent: colorAt(localHour()),
     // live data will steer these two, gently
@@ -213,12 +223,26 @@
 
   /* The breath */
 
-  function advanceBreath(dt) {
-    // the period wanders slowly within its drift, so no two breaths are quite alike
-    const wander = noise3(state.flowTime * 0.02, 11.7, 3.3);
-    const period = BREATH_PERIOD * (1 + BREATH_DRIFT * wander);
-    state.breathPhase = (state.breathPhase + (TAU * dt) / period) % TAU;
-    state.breath = Math.sin(state.breathPhase);
+  // The breath is a pure function of the clock, so the picture and the sound
+  // read the same breath even while the tab is hidden and nothing is drawn.
+  // Two slow sines bend the phase so the period wanders by up to BREATH_DRIFT.
+  const breathPeriod = BREATH_PERIOD / (reduceMotion ? 0.7 : 1);
+  const WANDER_A = { period: 97, phase: 0 };
+  const WANDER_B = { period: 61, phase: 1.3 };
+  const wanderShare = (BREATH_DRIFT * TAU) / breathPeriod / 2; // half the drift from each sine
+  const wanderAmpA = wanderShare / (TAU / WANDER_A.period);
+  const wanderAmpB = wanderShare / (TAU / WANDER_B.period);
+
+  function breathAt(seconds) {
+    const phase =
+      (TAU * seconds) / breathPeriod +
+      wanderAmpA * Math.sin((TAU * seconds) / WANDER_A.period + WANDER_A.phase) +
+      wanderAmpB * Math.sin((TAU * seconds) / WANDER_B.period + WANDER_B.phase);
+    return Math.sin(phase);
+  }
+
+  function clockSeconds() {
+    return performance.now() / 1000;
   }
 
   /* Drawing */
@@ -300,7 +324,7 @@
 
     const pace = state.pace * (reduceMotion ? REDUCED_PACE : 1);
     state.flowTime += dt * pace;
-    advanceBreath(dt * (reduceMotion ? 0.7 : 1));
+    state.breath = breathAt(clockSeconds());
 
     // the accent drifts toward the clock's color, never jumps
     const target = colorAt(localHour());
@@ -310,6 +334,171 @@
     draw();
     requestAnimationFrame(frame);
   }
+
+  /* The sound: a real stream, looped without a seam, breathing with the field */
+
+  const sound = {
+    ctx: null,
+    buffer: null,
+    breathGain: null,
+    filter: null,
+    master: null,
+    nextVoiceAt: 0, // audio-clock time the next pass of the recording begins
+    scheduledUntil: 0, // audio-clock time the breath is written up to
+    timer: 0
+  };
+
+  // start downloading right away, so Begin rarely has to wait
+  const soundData = fetch(SOUND_FILE)
+    .then((response) => {
+      if (!response.ok) throw new Error(`sound: ${response.status}`);
+      return response.arrayBuffer();
+    })
+    .catch(() => null);
+
+  function decode(ctx, data) {
+    // the callback form still matters for older Safari
+    return new Promise((resolve, reject) => ctx.decodeAudioData(data, resolve, reject));
+  }
+
+  function dbToGain(db) {
+    return Math.pow(10, db / 20);
+  }
+
+  function equalPowerCurve(fadeIn) {
+    const curve = new Float32Array(128);
+    for (let i = 0; i < curve.length; i += 1) {
+      const u = i / (curve.length - 1);
+      curve[i] = fadeIn ? Math.sin((u * Math.PI) / 2) : Math.cos((u * Math.PI) / 2);
+    }
+    return curve;
+  }
+
+  const FADE_IN_CURVE = equalPowerCurve(true);
+  const FADE_OUT_CURVE = equalPowerCurve(false);
+
+  // One pass of the recording. Each pass fades in over the tail of the one before
+  // and fades out under the head of the one after, with equal-power curves, so the
+  // loudness holds steady through the overlap.
+  function startVoice(at, fadeIn) {
+    const { ctx, buffer } = sound;
+    const length = buffer.duration - LOOP_TRIM * 2;
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+
+    source.buffer = buffer;
+    source.connect(gain);
+    gain.connect(sound.breathGain);
+
+    if (fadeIn) {
+      gain.gain.value = 0;
+      gain.gain.setValueCurveAtTime(FADE_IN_CURVE, at, LOOP_CROSSFADE);
+    } else {
+      gain.gain.setValueAtTime(1, at);
+    }
+    gain.gain.setValueCurveAtTime(FADE_OUT_CURVE, at + length - LOOP_CROSSFADE, LOOP_CROSSFADE);
+
+    source.start(at, LOOP_TRIM, length);
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+    };
+
+    sound.nextVoiceAt = at + length - LOOP_CROSSFADE;
+  }
+
+  // Write the breath into the gain and the filter a few seconds ahead, in small
+  // straight steps, so a slow or throttled timer never leaves the sound unsteered.
+  function scheduleBreath() {
+    const { ctx } = sound;
+    const now = ctx.currentTime;
+    // the breath runs on the page clock; map it onto the audio clock each time
+    const offset = clockSeconds() - now;
+    const until = now + 6;
+    let t = Math.max(sound.scheduledUntil, now + 0.05);
+
+    for (; t <= until; t += 0.1) {
+      const breath = breathAt(t + offset);
+      const lift = (breath + 1) / 2; // 0 settled, 1 swelled
+      sound.breathGain.gain.linearRampToValueAtTime(dbToGain(SWELL_DB * (lift - 0.5)), t);
+      sound.filter.frequency.linearRampToValueAtTime(
+        FILTER_SETTLED * Math.pow(FILTER_SWELLED / FILTER_SETTLED, lift),
+        t
+      );
+    }
+    sound.scheduledUntil = t;
+
+    // queue the next pass well before it is needed
+    if (sound.nextVoiceAt - now < 30) startVoice(sound.nextVoiceAt, true);
+  }
+
+  async function startSound() {
+    try {
+      // on iPhone, play through the ring/silent switch like a music app
+      if (navigator.audioSession) navigator.audioSession.type = "playback";
+    } catch (error) {
+      // not supported
+    }
+
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    // created inside the Begin tap, which is what lets the browser play it
+    const ctx = new AudioContext();
+    sound.ctx = ctx;
+    ctx.resume().catch(() => {});
+
+    const data = await soundData;
+    if (!data) return; // no sound file: the river runs in silence
+
+    try {
+      sound.buffer = await decode(ctx, data);
+    } catch (error) {
+      return;
+    }
+
+    sound.filter = ctx.createBiquadFilter();
+    sound.filter.type = "lowpass";
+    sound.filter.Q.value = FILTER_Q;
+    sound.breathGain = ctx.createGain();
+    sound.master = ctx.createGain();
+
+    sound.breathGain.connect(sound.filter);
+    sound.filter.connect(sound.master);
+    sound.master.connect(ctx.destination);
+
+    const start = ctx.currentTime + 0.1;
+    const lift = (breathAt(start + clockSeconds() - ctx.currentTime) + 1) / 2;
+    sound.breathGain.gain.setValueAtTime(dbToGain(SWELL_DB * (lift - 0.5)), start);
+    sound.filter.frequency.setValueAtTime(
+      FILTER_SETTLED * Math.pow(FILTER_SWELLED / FILTER_SETTLED, lift),
+      start
+    );
+    sound.scheduledUntil = start;
+
+    // from silence, easing in the way a sound arrives from a distance
+    const fade = new Float32Array(256);
+    for (let i = 0; i < fade.length; i += 1) {
+      const u = i / (fade.length - 1);
+      const s = u * u * (3 - 2 * u);
+      fade[i] = SOUND_LEVEL * s * s;
+    }
+    sound.master.gain.value = 0;
+    sound.master.gain.setValueCurveAtTime(fade, start, SOUND_FADE_SECONDS);
+
+    startVoice(start, false);
+    scheduleBreath();
+    sound.timer = setInterval(scheduleBreath, 1000);
+  }
+
+  // iPhone can pause the sound for a call or a lock; pick it up again quietly
+  function wakeSound() {
+    if (sound.ctx && sound.ctx.state !== "running" && sound.ctx.state !== "closed") {
+      sound.ctx.resume().catch(() => {});
+    }
+  }
+
+  document.addEventListener("pointerdown", wakeSound, { passive: true });
 
   /* Staying awake */
 
@@ -326,7 +515,10 @@
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && state.running) holdWake();
+    if (!document.hidden && state.running) {
+      holdWake();
+      wakeSound();
+    }
   });
 
   /* Beginning */
@@ -337,6 +529,7 @@
     state.beganAt = performance.now();
     document.body.classList.add("running");
     markCard.hidden = true;
+    startSound();
     holdWake();
   }
 
