@@ -1,0 +1,37 @@
+name: Glyph live check (temporary)
+on:
+  push:
+    branches: [claude/rio-audio-visual-gqwabr]
+    paths: [.github/workflows/rio-live-check.yml]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sleep 90
+      - name: A real browser opens each live page
+        run: |
+          npm i --silent playwright@1.56.1 >/dev/null
+          cat > check.js <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const b = await chromium.launch({ channel: 'chrome' });
+            for (const n of ['solar', 'tremor', 'current', 'rio']) {
+              const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+              const p = await ctx.newPage();
+              const errs = [];
+              p.on('pageerror', e => errs.push(e.message));
+              p.on('response', r => { if (r.status() >= 400) errs.push(r.status() + ' ' + r.url()); });
+              await p.goto(`https://matzunaga.github.io/${n}/`, { waitUntil: 'load' });
+              await p.waitForTimeout(2500);
+              const shown = () => p.evaluate(() => { const c = document.getElementById('markCard'); return !c.hidden && getComputedStyle(c).visibility !== 'hidden'; });
+              const r = await p.evaluate(() => ({ glyph: !!document.querySelector('#mark svg'), kanji: /[陽震流川]/.test(document.body.innerHTML), label: document.getElementById('mark').getAttribute('aria-label') }));
+              await p.tap('#mark'); await p.waitForTimeout(400); const open = await shown();
+              const text = await p.$eval('#markCard', e => e.innerText.replace(/\n+/g, ' / '));
+              await p.tap('#mark'); await p.waitForTimeout(400); const closed = !(await shown());
+              console.log(n.padEnd(8), JSON.stringify(r), '| opens', open, '| closes', closed, '|', text, '| errors', JSON.stringify(errs));
+              await ctx.close();
+            }
+            await b.close();
+          })();
+          JS
+          node check.js
