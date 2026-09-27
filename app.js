@@ -78,6 +78,21 @@
   const mark = document.getElementById("mark");
   const markCard = document.getElementById("markCard");
 
+  // The glyph lives in its own file so it can be redrawn without touching the code.
+  // It is placed inside the button so its lines can follow the mark's color.
+  fetch("mark.svg", { cache: "no-cache" })
+    .then((response) => (response.ok ? response.text() : Promise.reject()))
+    .then((text) => {
+      const svg = new DOMParser().parseFromString(text, "image/svg+xml").documentElement;
+      if (svg.nodeName.toLowerCase() !== "svg") return;
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+      mark.replaceChildren(document.importNode(svg, true));
+    })
+    .catch(() => {
+      // no glyph file: the button keeps its label and the page carries on
+    });
+
   const placeEl = document.getElementById("place");
   const locationButton = document.getElementById("locationButton");
   const locationPanel = document.getElementById("locationPanel");
