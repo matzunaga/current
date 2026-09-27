@@ -1,0 +1,17 @@
+name: USGS probe (temporary)
+on:
+  push:
+    branches: [claude/rio-audio-visual-gqwabr]
+    paths: [.github/workflows/usgs-probe.yml]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          B="https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items?monitoring_location_id=USGS-09380000&parameter_code=00060&time=P7D&f=json&limit=10000"
+          for Q in "" "&skipGeometry=true" "&properties=time,value" "&properties=time,value&skipGeometry=true"; do
+            echo "=== $Q"
+            curl -sS -o r.json -w "status %{http_code} bytes %{size_download} gzip-bytes " -H "Origin: https://matzunaga.github.io" "$B$Q"
+            curl -sS --compressed -o /dev/null -w "%{size_download}\n" -H "Accept-Encoding: gzip" "$B$Q"
+            python3 -c "import json;d=json.load(open('r.json'));f=d.get('features',[]);print('n',len(f));print(json.dumps(f[-1] if f else d)[:600])" || head -c 600 r.json
+          done
