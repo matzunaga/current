@@ -252,6 +252,16 @@ body.running .status {
   transition-delay: 6s;
 }
 
+body.running .status.changing {
+  opacity: 0;
+  transition-duration: 1.5s;
+  transition-delay: 0s;
+}
+
+.status span + span::before {
+  content: " · ";
+}
+
 noscript {
   position: fixed;
   bottom: calc(var(--bottom) + 24px);
@@ -282,5 +292,18 @@ noscript {
 
   .instruction br {
     display: inline;
+  }
+
+  .status {
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .status span {
+    display: block;
+  }
+
+  .status span + span::before {
+    content: none;
   }
 }

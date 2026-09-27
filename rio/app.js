@@ -41,6 +41,20 @@
   const FILTER_SWELLED = 5200; // and when it swells
   const FILTER_Q = 0.5; // a soft knee, nothing resonant
 
+  // The live river
+  const RIVER = {
+    id: "USGS-09380000", // a USGS monitoring location that reports discharge, parameter 00060
+    name: "Colorado River",
+    place: "Lees Ferry, Arizona"
+  };
+  const WATER_API = "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items";
+  const DATA_REFRESH_MS = 15 * 60 * 1000;
+  const DATA_STALE_HOURS = 3; // an older reading counts as no reading
+  const DATA_INFLUENCE = 0.2; // the river's flow nudges speed and turbulence by at most this share
+  const DATA_EASE_SECONDS = 90; // how long a new reading takes to settle into the field
+  const DATA_TIMEOUT_MS = 20 * 1000;
+  const RESTING_LINE = "River data is resting. The river continues.";
+
   // Beginning
   const IDLE_LEVEL = 0.1; // how present the field is before Begin
   const IDLE_PACE = 0.35; // how fast it moves before Begin
@@ -81,11 +95,14 @@
     level: IDLE_LEVEL, // overall presence of the field, 0 to 1
     pace: IDLE_PACE, // overall speed of time in the field
     flowTime: 0, // accumulated, so a change of pace never jumps
+    drift: 0, // how far the water has travelled downstream, accumulated for the same reason
     breath: 0, // -1 settled to +1 swelled
     accent: colorAt(localHour()),
-    // live data will steer these two, gently
+    // live data steers these two, gently, toward their targets
     speedFactor: 1,
     turbulenceFactor: 1,
+    speedTarget: 1,
+    turbulenceTarget: 1,
     last: 0
   };
 
@@ -256,7 +273,7 @@
     const band = h * BAND_HEIGHT * (1 + BREATH_SPACING * breath);
     const top = (h - band) / 2;
     const scale = Math.max(w, h) / 1000; // noise coordinates stay the same at any size
-    const drift = t * FLOW_SPEED * state.speedFactor;
+    const drift = state.drift;
     const ripple = RIPPLE_AMPLITUDE * TURBULENCE * state.turbulenceFactor;
     const meander = MEANDER_AMPLITUDE * Math.max(0.6, h / 900);
 
@@ -324,7 +341,13 @@
 
     const pace = state.pace * (reduceMotion ? REDUCED_PACE : 1);
     state.flowTime += dt * pace;
+    state.drift += dt * pace * FLOW_SPEED * state.speedFactor;
     state.breath = breathAt(clockSeconds());
+
+    // a new river reading eases in over a minute and a half, never jumps
+    const ease = 1 - Math.exp(-dt / (DATA_EASE_SECONDS / 3));
+    state.speedFactor += (state.speedTarget - state.speedFactor) * ease;
+    state.turbulenceFactor += (state.turbulenceTarget - state.turbulenceFactor) * ease;
 
     // the accent drifts toward the clock's color, never jumps
     const target = colorAt(localHour());
@@ -499,6 +522,134 @@
   }
 
   document.addEventListener("pointerdown", wakeSound, { passive: true });
+
+  /* The live river: USGS discharge over the past week, read gently */
+
+  const statusLine = document.getElementById("status");
+  const river = { latest: null, lastTry: 0 }; // latest: { cfs, time, low, high }
+
+  function riverURL() {
+    const query = new URLSearchParams({
+      monitoring_location_id: RIVER.id,
+      parameter_code: "00060",
+      time: "P7D",
+      properties: "time,value",
+      skipGeometry: "true",
+      f: "json",
+      limit: "10000"
+    });
+    return `${WATER_API}?${query}`;
+  }
+
+  function isFresh(reading) {
+    return reading && Date.now() - reading.time.getTime() < DATA_STALE_HOURS * 3600 * 1000;
+  }
+
+  function formatReading(reading) {
+    const cfs = Math.round(reading.cfs).toLocaleString("en-US");
+    const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(
+      reading.time
+    );
+    return [`${RIVER.name} · ${RIVER.place}`, `${cfs} cubic feet per second · ${time}`];
+  }
+
+  // the footer never changes in place: it fades out, takes the new words, fades back
+  let shownLine = "";
+  let swapTimer = 0;
+
+  function setLine(parts) {
+    const key = parts.join("|");
+    if (key === shownLine) return;
+    const first = shownLine === "";
+    shownLine = key;
+    clearTimeout(swapTimer);
+
+    const write = () => {
+      statusLine.replaceChildren(
+        ...parts.map((text) => {
+          const part = document.createElement("span");
+          part.textContent = text;
+          return part;
+        })
+      );
+      statusLine.classList.remove("changing");
+    };
+
+    if (first) {
+      write();
+    } else {
+      statusLine.classList.add("changing");
+      swapTimer = setTimeout(write, 1600);
+    }
+  }
+
+  function showRiver() {
+    const reading = river.latest;
+
+    if (!isFresh(reading)) {
+      // no reading, or too old to trust: the field keeps its own rhythm
+      state.speedTarget = 1;
+      state.turbulenceTarget = 1;
+      setLine([RESTING_LINE]);
+      return;
+    }
+
+    // where the latest flow sits within this week's range, from 0 to 1
+    const span = reading.high - reading.low;
+    const level = span > 0 ? (reading.cfs - reading.low) / span : 0.5;
+    const nudge = (Math.min(1, Math.max(0, level)) - 0.5) * 2 * DATA_INFLUENCE;
+    state.speedTarget = 1 + nudge;
+    state.turbulenceTarget = 1 + nudge;
+
+    setLine(formatReading(reading));
+  }
+
+  async function loadRiver() {
+    river.lastTry = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), DATA_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(riverURL(), { cache: "no-store", signal: controller.signal });
+      if (!response.ok) throw new Error(`USGS: ${response.status}`);
+      const data = await response.json();
+
+      const points = (data.features || [])
+        .map((feature) => ({
+          cfs: Number(feature.properties.value),
+          time: new Date(feature.properties.time)
+        }))
+        .filter((point) => Number.isFinite(point.cfs) && !Number.isNaN(point.time.getTime()));
+
+      if (!points.length) throw new Error("USGS: no readings");
+
+      points.sort((a, b) => a.time - b.time);
+      const values = points.map((point) => point.cfs);
+      const newest = points[points.length - 1];
+
+      river.latest = {
+        cfs: newest.cfs,
+        time: newest.time,
+        low: Math.min(...values),
+        high: Math.max(...values)
+      };
+    } catch (error) {
+      // offline, refused or empty: keep the last good reading while it is still fresh
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    showRiver();
+  }
+
+  loadRiver();
+  setInterval(loadRiver, DATA_REFRESH_MS);
+  // a reading can grow stale between fetches, so look again now and then
+  setInterval(showRiver, 60 * 1000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && Date.now() - river.lastTry > DATA_REFRESH_MS) loadRiver();
+  });
 
   /* Staying awake */
 
