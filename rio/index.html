@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#04050a" />
+  <meta name="description" content="Río — a river of light and water sound, running on its own." />
+  <title>Río</title>
+  <link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <main class="experience" aria-labelledby="title">
+    <canvas id="river" aria-label="Many thin threads of light flowing slowly across the screen, like a river seen from a bridge"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="masthead">
+      <button
+        class="mark"
+        id="mark"
+        type="button"
+        aria-label="What 川 means"
+        aria-expanded="false"
+        aria-controls="markCard"
+      >
+        川
+      </button>
+      <h1 id="title">Río</h1>
+    </header>
+
+    <aside class="mark-card" id="markCard" aria-label="What 川 means" hidden>
+      <p class="mark-title">川 <span>kawa</span></p>
+
+      <p>
+        River. The character is three strokes of water running side by side,
+        drawn almost as it looks.
+      </p>
+    </aside>
+
+    <section class="intro" id="intro">
+      <p class="instruction">
+        The water is moving.<br />
+        Stay with it for a while.
+      </p>
+      <button class="begin" id="begin" type="button">Begin</button>
+    </section>
+
+    <p class="status" id="status" role="status"></p>
+  </main>
+
+  <noscript>This piece needs JavaScript to let the river run.</noscript>
+
+  <script src="app.js?v=1"></script>
+</body>
+</html>
